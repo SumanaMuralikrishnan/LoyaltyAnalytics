@@ -1,0 +1,10 @@
+flask
+flask-cors
+pandas
+pyodbc
+flask_caching
+flask_limiter
+bcrypt
+jwt
+dotenv
+requests
