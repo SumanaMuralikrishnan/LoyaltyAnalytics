@@ -365,31 +365,176 @@ def transactions():
         logger.debug(f"Fetched {len(user_map)} users for name mapping")
         
         transactions_data = []
+        total_points = 0
+        total_value = 0
+        flagged_transactions = 0
+        
         for t in transactions_response.data:
-            logger.debug(f"Processing transaction: {t}")
-            if not all(key in t for key in ['id', 'customer_id', 'points', 'type', 'context', 'date']):
+            if not isinstance(t, dict) or not all(key in t for key in ['id', 'customer_id', 'points', 'type', 'context', 'date']):
                 logger.warning(f"Skipping transaction with missing fields: {t}")
                 continue
             customer_name = user_map.get(t['customer_id'], 'Unknown')
             status = 'completed' if t['points'] != 0 else 'pending'
+            amount = t['points'] * 0.1  # Assuming 1 point = $0.1 as in the original logic
+            # Simple heuristic for flagging suspicious transactions (e.g., high points)
+            flagged = abs(t['points']) > 1000  # Flag if points are unusually high (positive or negative)
+            if flagged:
+                flagged_transactions += 1
+            total_points += t['points']
+            total_value += amount
             transactions_data.append({
                 'id': t['id'],
                 'customerId': t['customer_id'],
                 'customerName': customer_name,
                 'type': t['type'],
                 'points': t['points'],
-                'amount': t['points'] * 0.1,
+                'amount': amount,
                 'description': t['context'],
                 'date': t['date'],
-                'status': status
+                'status': status,
+                'flagged': flagged
             })
-        logger.debug(f"Returning {len(transactions_data)} transactions")
-        return jsonify({'transactions': transactions_data})
+        
+        stats = {
+            'totalTransactions': len(transactions_data),
+            'totalPoints': total_points,
+            'totalValue': round(total_value, 2),
+            'flaggedTransactions': flagged_transactions
+        }
+        
+        logger.debug(f"Returning {len(transactions_data)} transactions with stats: {stats}")
+        return jsonify({'transactions': transactions_data, 'stats': stats}), 200
     except Exception as e:
         logger.error(f"Transactions error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
+@app.route('/dashboard/customers', methods=['GET', 'OPTIONS'])
+@require_auth
+def customers():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 204
+    logger.info(f"Processing GET /dashboard/customers at {datetime.now(UTC).isoformat()} with headers: {request.headers}")
+    try:
+        # Check Supabase client
+        if supabase is None:
+            logger.error("Supabase client not available")
+            return jsonify({'error': 'Service unavailable, please retry'}), 503
+
+        # Fetch users data
+        logger.debug("Fetching users data")
+        users_response = supabase.table('users').select('id, name, email, tier, points_balance, last_activity, created_at').execute()
+        if not users_response.data:
+            logger.warning("No user data available")
+            return jsonify({'error': 'No user data available'}), 404
+        logger.debug(f"Fetched {len(users_response.data)} users")
+
+        # Fetch orders data
+        logger.debug("Fetching orders data")
+        orders_response = supabase.table('orders').select('customer_id, total, date').execute()
+        customer_orders = {}
+        for order in orders_response.data:
+            if not isinstance(order, dict) or not all(key in order for key in ['customer_id', 'total', 'date']):
+                logger.warning(f"Skipping invalid order record: {order}")
+                continue
+            customer_id = order['customer_id']
+            if customer_id not in customer_orders:
+                customer_orders[customer_id] = []
+            customer_orders[customer_id].append(order)
+        logger.debug(f"Processed orders for {len(customer_orders)} customers")
+
+        # Fetch ML predictions
+        logger.debug("Fetching ML predictions")
+        ml_response = supabase.table('ml_predictions').select('customer_id, clv_predicted').execute()
+        customer_clv = {ml['customer_id']: ml['clv_predicted'] for ml in ml_response.data if isinstance(ml, dict) and all(key in ml for key in ['customer_id', 'clv_predicted'])}
+        logger.debug(f"Mapped CLV for {len(customer_clv)} customers")
+
+        # Generate segment mapping (adapted from /dashboard/segments)
+        logger.debug("Generating segment mapping")
+        segments = [
+            {'name': 'High Value', 'customers': []},
+            {'name': 'At Risk', 'customers': []},
+            {'name': 'New', 'customers': []},
+            {'name': 'Loyal', 'customers': []}
+        ]
+        one_year_ago = datetime.now(UTC) - timedelta(days=365)
+        ninety_days_ago = datetime.now(UTC) - timedelta(days=90)
+
+        for user in users_response.data:
+            if not isinstance(user, dict) or not all(key in user for key in ['id', 'name', 'tier', 'points_balance', 'created_at']):
+                logger.warning(f"Skipping invalid user record: {user}")
+                continue
+            customer_id = user['id']
+            orders = customer_orders.get(customer_id, [])
+            total_spend = sum(order['total'] for order in orders if isinstance(order, dict) and 'total' in order)
+            clv = customer_clv.get(customer_id, 0)
+            points = user['points_balance']
+            last_order = None
+            if orders:
+                valid_dates = [parse_iso_datetime(order['date']) for order in orders if parse_iso_datetime(order['date'])]
+                last_order = max(valid_dates) if valid_dates else None
+            created_at = parse_iso_datetime(user['created_at'])
+            if not created_at:
+                logger.warning(f"Skipping user {customer_id} with invalid created_at: {user['created_at']}")
+                continue
+
+            # Assign customer to a segment
+            if clv > 1000 or points > 2000:
+                segments[0]['customers'].append(user)
+            elif last_order and last_order < ninety_days_ago:
+                segments[1]['customers'].append(user)
+            elif created_at > one_year_ago:
+                segments[2]['customers'].append(user)
+            elif len(orders) > 5 and clv > 500:
+                segments[3]['customers'].append(user)
+
+        # Create segment map
+        segment_map = {}
+        for segment in segments:
+            for customer in segment['customers']:
+                if isinstance(customer, dict) and 'id' in customer:
+                    segment_map[customer['id']] = segment['name']
+        logger.debug(f"Mapped {len(segment_map)} customers to segments")
+
+        # Process customer data
+        customers_data = []
+        for user in users_response.data:
+            logger.debug(f"Processing user {user.get('id', 'unknown')}")
+            if not isinstance(user, dict) or not all(key in user for key in ['id', 'name', 'email', 'tier', 'points_balance', 'last_activity']):
+                logger.warning(f"Skipping invalid user record: {user}")
+                continue
+
+            customer_id = user['id']
+            orders = customer_orders.get(customer_id, [])
+            total_spend = sum(order['total'] for order in orders if isinstance(order, dict) and 'total' in order) or 0
+            valid_dates = [parse_iso_datetime(order['date']) for order in orders if parse_iso_datetime(order['date'])]
+            last_activity = max(valid_dates, default=parse_iso_datetime(user['last_activity']) or datetime.now(UTC))
+            last_activity = last_activity.isoformat()
+            churn_risk = customer_clv.get(customer_id, 0) * 0.1 if customer_clv.get(customer_id) else 0.1
+            segment = segment_map.get(customer_id, 'Unassigned')
+
+            customers_data.append({
+                'id': customer_id,
+                'name': user['name'],
+                'email': user['email'],
+                'tier': user['tier'],
+                'points': user['points_balance'],
+                'spend': total_spend,
+                'lastActivity': last_activity,
+                'segment': segment,
+                'churnRisk': round(churn_risk * 100, 2)
+            })
+
+        logger.debug(f"Returning {len(customers_data)} customers")
+        return jsonify(customers_data)
+    except Exception as e:
+        logger.error(f"Customers error at {datetime.now(UTC).isoformat()}: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Internal server error'}), 500
+
 # Dashboard: Charts
+
+
+    
+
 @app.route('/dashboard/charts/', methods=['GET', 'OPTIONS'])
 
 @require_auth
@@ -778,6 +923,8 @@ def customer_lookup():
         logger.error(f"Customer lookup error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
+
+
 # Staff: Points Adjustment
 @app.route('/staff/points-adjustment', methods=['POST', 'OPTIONS'])
 @require_auth
@@ -857,6 +1004,49 @@ def redeem_reward():
         logger.error(f"Redeem reward error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
+@app.route('/rewards', methods=['GET', 'OPTIONS'])
+@require_auth
+def get_rewards():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 204
+    try:
+        # Fetch all rewards from Supabase
+        rewards_response = supabase.table('rewards').select('id, name, points_cost').execute()
+        if not rewards_response.data:
+            logger.warning("No rewards found in the database")
+            return jsonify([]), 200
+
+        # Fetch redemption transactions to calculate redemptionCount
+        transactions_response = supabase.table('transactions').select('context').eq('type', 'redeem').execute()
+        reward_counts = {}
+        for t in transactions_response.data:
+            if not isinstance(t, dict) or 'context' not in t:
+                logger.warning(f"Skipping invalid transaction record: {t}")
+                continue
+            try:
+                reward_id = t['context'].split()[-1]  # Assumes context format like "Redemption of reward {reward_id}"
+                reward_counts[reward_id] = reward_counts.get(reward_id, 0) + 1
+            except Exception as e:
+                logger.warning(f"Error parsing reward_id from context '{t['context']}': {str(e)}")
+                continue
+
+        # Format rewards to match the expected Reward interface
+        rewards_data = [
+            {
+                'id': reward['id'],
+                'name': reward['name'],
+                'points': reward['points_cost'],
+                'redemptionCount': reward_counts.get(reward['id'], 0)
+            }
+            for reward in rewards_response.data
+            if isinstance(reward, dict) and all(key in reward for key in ['id', 'name', 'points_cost'])
+        ]
+
+        logger.debug(f"Returning {len(rewards_data)} rewards")
+        return jsonify(rewards_data), 200
+    except Exception as e:
+        logger.error(f"Rewards endpoint error: {str(e)}", exc_info=True)
+        return jsonify({'error': f"Failed to fetch rewards: {str(e)}"}), 500
 # Dashboard: Top Rewards
 @app.route('/dashboard/top-rewards', methods=['GET', 'OPTIONS'])
 @require_auth
