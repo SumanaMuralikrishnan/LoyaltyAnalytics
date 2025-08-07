@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, Gift, Award, DollarSign, Megaphone, Percent, List } from 'lucide-react';
+import { TrendingUp, Users, Gift, Award, DollarSign, Megaphone, Percent, List, BarChart3, Target, Calendar, ShoppingBag } from 'lucide-react';
 import { Bar, Doughnut, Pie, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -41,6 +41,10 @@ interface IconMap {
   Megaphone: LucideIcon;
   Percent: LucideIcon;
   List: LucideIcon;
+  BarChart3: LucideIcon;
+  Target: LucideIcon;
+  Calendar: LucideIcon;
+  ShoppingBag: LucideIcon;
 }
 
 interface Kpi {
@@ -71,6 +75,7 @@ interface TopReward {
 
 interface CustomerRecommendation {
   customer: string;
+  name: string;
   tier: string;
   clv: string;
   predictedClv: string;
@@ -132,7 +137,11 @@ const icons: IconMap = {
   DollarSign,
   Megaphone,
   Percent,
-  List
+  List,
+  BarChart3,
+  Target,
+  Calendar,
+  ShoppingBag
 };
 
 const aiInsights: AiInsight[] = [
@@ -356,7 +365,9 @@ const Dashboard = () => {
         data: chartsData.transactionsByType.data,
         backgroundColor: ['#34D399', '#EF4444', '#3B82F6', '#A855F7', '#F59E0B'],
         borderColor: ['#10B981', '#DC2626', '#2563EB', '#9333EA', '#D97706'],
-        borderWidth: 1
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       }
     ]
   };
@@ -366,11 +377,18 @@ const Dashboard = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Transaction Points by Type' }
+      title: { display: false }
     },
     scales: {
-      x: { title: { display: true, text: 'Transaction Type' } },
-      y: { title: { display: true, text: 'Points' }, beginAtZero: true }
+      x: { 
+        grid: { display: false },
+        ticks: { font: { size: 12 } }
+      },
+      y: { 
+        beginAtZero: true,
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 12 } }
+      }
     }
   };
 
@@ -391,8 +409,11 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'right' as const },
-      title: { display: true, text: 'Customer Segment Distribution' }
+      legend: { 
+        position: 'bottom' as const,
+        labels: { font: { size: 12 } }
+      },
+      title: { display: false }
     }
   };
 
@@ -405,7 +426,9 @@ const Dashboard = () => {
         data: chartsData.campaignEngagement.data,
         backgroundColor: 'rgba(59, 130, 246, 0.8)',
         borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 1
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       }
     ]
   };
@@ -415,7 +438,7 @@ const Dashboard = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Participants by Campaign' }
+      title: { display: false }
     },
     scales: {
       x: {
@@ -423,13 +446,15 @@ const Dashboard = () => {
           autoSkip: true,
           maxTicksLimit: 10,
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          font: { size: 12 }
         },
-        title: { display: true, text: 'Campaign' }
+        grid: { display: false }
       },
       y: {
         beginAtZero: true,
-        title: { display: true, text: 'Number of Participants' }
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 12 } }
       }
     }
   };
@@ -444,6 +469,8 @@ const Dashboard = () => {
         backgroundColor: 'rgba(34, 197, 94, 0.8)',
         borderColor: 'rgb(34, 197, 94)',
         borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       },
       {
         label: 'Points Redeemed',
@@ -451,6 +478,8 @@ const Dashboard = () => {
         backgroundColor: 'rgba(168, 85, 247, 0.8)',
         borderColor: 'rgb(168, 85, 247)',
         borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
@@ -459,8 +488,11 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: 'Points Activity (All Historical Data)' }
+      legend: { 
+        position: 'top' as const,
+        labels: { font: { size: 12 } }
+      },
+      title: { display: false }
     },
     scales: {
       x: {
@@ -468,13 +500,15 @@ const Dashboard = () => {
           autoSkip: true,
           maxTicksLimit: 20,
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          font: { size: 12 }
         },
         grid: { display: false },
       },
       y: {
         beginAtZero: true,
-        title: { display: true, text: 'Points' },
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 12 } }
       },
     },
   };
@@ -496,8 +530,11 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'right' as const },
-      title: { display: true, text: 'Tier Distribution' }
+      legend: { 
+        position: 'bottom' as const,
+        labels: { font: { size: 12 } }
+      },
+      title: { display: false }
     }
   };
 
@@ -522,8 +559,8 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: 'Reward Popularity' }
+      legend: { display: false },
+      title: { display: false }
     }
   };
 
@@ -537,8 +574,11 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: 'Campaign Participation Over Time' }
+      legend: { 
+        position: 'top' as const,
+        labels: { font: { size: 12 } }
+      },
+      title: { display: false }
     },
     scales: {
       x: {
@@ -546,14 +586,16 @@ const Dashboard = () => {
           autoSkip: true,
           maxTicksLimit: 12,
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          font: { size: 12 }
         },
-        title: { display: true, text: 'Month' }
+        grid: { display: false }
       },
       y: {
         beginAtZero: true,
-        title: { display: true, text: 'Number of Participants' },
-        stacked: true
+        stacked: true,
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 12 } }
       }
     }
   };
@@ -567,7 +609,9 @@ const Dashboard = () => {
         data: chartsData.customerEngagementByTier.data,
         backgroundColor: 'rgba(139, 92, 246, 0.8)',
         borderColor: 'rgb(139, 92, 246)',
-        borderWidth: 1
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
       }
     ]
   };
@@ -577,15 +621,17 @@ const Dashboard = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Customer Engagement by Tier' }
+      title: { display: false }
     },
     scales: {
       x: {
-        title: { display: true, text: 'Tier' }
+        grid: { display: false },
+        ticks: { font: { size: 12 } }
       },
       y: {
         beginAtZero: true,
-        title: { display: true, text: 'Average Points Earned' }
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 12 } }
       }
     }
   };
@@ -604,33 +650,53 @@ const Dashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading...</div>;
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-600">Error: {error}</div>;
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">Error: {error}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="p-8">
+      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Overview</h1>
         <p className="text-gray-600">Monitor your loyalty program performance and AI-powered insights</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+      {/* 12 KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
         {kpis.map((kpi, index) => {
           const Icon = icons[kpi.icon];
           return (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">{kpi.title}</p>
-                  <h3 className="text-2xl font-semibold text-gray-900">{kpi.value}</h3>
-                  <p className={`text-sm ${kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                    {kpi.change} {kpi.trend === 'up' ? '↑' : '↓'}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">{kpi.title}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{kpi.value}</h3>
+                  <p className={`text-sm font-medium flex items-center ${
+                    kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    <span className="mr-1">
+                      {kpi.trend === 'up' ? '↗' : '↘'}
+                    </span>
+                    {kpi.change}
                   </p>
                 </div>
-                <div className={`p-3 rounded-full ${getColorClasses(kpi.color)}`}>
+                <div className={`p-3 rounded-xl ${getColorClasses(kpi.color)}`}>
                   <Icon className="h-6 w-6" />
                 </div>
               </div>
@@ -638,161 +704,212 @@ const Dashboard = () => {
           );
         })}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Transaction Points by Type</h3>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Transaction Points by Type</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.transactionsByType.labels.length > 0 && chartsData.transactionsByType.data.length > 0 ? (
               <Bar data={transactionsByTypeData} options={transactionsByTypeOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Customer Segment Distribution</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Customer Segment Distribution</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.customerSegments.labels.length > 0 && chartsData.customerSegments.data.length > 0 ? (
               <Pie data={customerSegmentsData} options={customerSegmentsOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Participants by Campaign</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Campaign Participation</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.campaignEngagement.labels.length > 0 && chartsData.campaignEngagement.data.length > 0 ? (
               <Bar data={campaignEngagementData} options={campaignEngagementOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Points Activity (All Historical Data)</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Points Activity</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.pointsActivity.labels.length > 0 &&
             chartsData.pointsActivity.earned.length > 0 &&
             chartsData.pointsActivity.redeemed.length > 0 ? (
               <Bar data={pointsActivityData} options={pointsActivityOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Tier Distribution</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Tier Distribution</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.tierDistribution.labels.length > 0 && chartsData.tierDistribution.data.length > 0 ? (
               <Doughnut data={tierDistributionData} options={tierDistributionOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Reward Popularity</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Reward Popularity</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.rewardPopularity.length > 0 ? (
               <Radar data={rewardPopularityData} options={rewardPopularityOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Campaign Participation Over Time</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Campaign Participation Over Time</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.campaignParticipationOverTime.labels.length > 0 &&
             chartsData.campaignParticipationOverTime.datasets.length > 0 ? (
               <Bar data={campaignParticipationOverTimeData} options={campaignParticipationOverTimeOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
-          <div className="w-full" style={{ height: 'calc(100% - 3rem)' }}>
-            <h3 className="text-lg font-semibold mb-4 text-center">Customer Engagement by Tier</h3>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Customer Engagement by Tier</h3>
+          <div style={{ height: '300px' }}>
             {chartsData.customerEngagementByTier.labels.length > 0 && chartsData.customerEngagementByTier.data.length > 0 ? (
               <Bar data={customerEngagementByTierData} options={customerEngagementByTierOptions} />
             ) : (
-              <p className="text-gray-500 text-center">No data available</p>
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No data available
+              </div>
             )}
           </div>
         </div>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Top Rewards</h3>
+
+      {/* Top Rewards Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Top Rewards</h3>
+        </div>
         {topRewards.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Reward</th>
-                  <th scope="col" className="px-6 py-3">Redemptions</th>
-                  <th scope="col" className="px-6 py-3">Points Cost</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reward</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Redemptions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points Cost</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {topRewards.map((reward, index) => (
-                  <tr key={index} className="bg-white border-b">
-                    <td className="px-6 py-4">{reward.name}</td>
-                    <td className="px-6 py-4">{reward.redemptions}</td>
-                    <td className="px-6 py-4">{reward.points}</td>
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{reward.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{reward.redemptions}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{reward.points}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">No reward data available</p>
+          <div className="p-12 text-center">
+            <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No reward data available</p>
+          </div>
         )}
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Customer Recommendations</h3>
+
+      {/* Customer Recommendations Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Customer Recommendations</h3>
+        </div>
         {customerRecommendations.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Customer</th>
-                  <th scope="col" className="px-6 py-3">Tier</th>
-                  <th scope="col" className="px-6 py-3">CLV</th>
-                  <th scope="col" className="px-6 py-3">Predicted CLV</th>
-                  <th scope="col" className="px-6 py-3">Recommended Reward</th>
-                  <th scope="col" className="px-6 py-3">Reason</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tier</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CLV</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted CLV</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommended Reward</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {customerRecommendations.map((rec, index) => (
-                  <tr key={index} className="bg-white border-b">
-                    <td className="px-6 py-4">{rec.customer}</td>
-                    <td className="px-6 py-4">{rec.tier}</td>
-                    <td className="px-6 py-4">{rec.clv}</td>
-                    <td className="px-6 py-4">{rec.predictedClv}</td>
-                    <td className="px-6 py-4">{rec.recommendedReward}</td>
-                    <td className="px-6 py-4">{rec.reason}</td>
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rec.customer}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        rec.tier === 'Gold' ? 'bg-yellow-100 text-yellow-800' :
+                        rec.tier === 'Silver' ? 'bg-gray-100 text-gray-800' :
+                        'bg-amber-100 text-amber-800'
+                      }`}>
+                        {rec.tier}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{rec.clv}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{rec.predictedClv}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{rec.recommendedReward}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{rec.reason}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">No recommendations available</p>
+          <div className="p-12 text-center">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No recommendations available</p>
+          </div>
         )}
       </div>
+
+      {/* AI Insights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {aiInsights.map((insight, index) => {
           const Icon = icons[insight.icon];
           return (
-            <div key={index} className={`bg-${insight.bgColor} p-6 rounded-lg shadow-sm border border-${insight.borderColor}`}>
+            <div key={index} className={`bg-${insight.bgColor} rounded-xl p-6 shadow-sm border border-${insight.borderColor}`}>
               <div className="flex items-center mb-4">
-                <Icon className={`h-6 w-6 text-${insight.color} mr-2`} />
+                <div className={`p-2 rounded-lg bg-white shadow-sm mr-3`}>
+                  <Icon className={`h-5 w-5 text-${insight.color}`} />
+                </div>
                 <h3 className={`text-lg font-semibold text-${insight.color}`}>{insight.title}</h3>
               </div>
-              <p className="text-gray-600">{insight.description}</p>
+              <p className="text-gray-700 text-sm leading-relaxed">{insight.description}</p>
             </div>
           );
         })}
