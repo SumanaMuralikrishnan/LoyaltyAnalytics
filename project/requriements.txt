@@ -8,3 +8,4 @@ bcrypt
 jwt
 dotenv
 requests
+supabase
