@@ -1314,7 +1314,7 @@ def segments():
             count = len(customer_ids)
             
             segment_transactions = [t for t in transactions_response['data'] if t['customer_id'] in customer_ids]
-            total_spend = sum(t['amount'] for t in segment_transactions if t['amount'] > 0)
+            total_spend = sum(t['amount'] for t in segment_transactions if t['amount'] is not None and t['amount'] > 0)
             total_points = sum(u['points_balance'] for u in users_response['data'] if u['id'] in customer_ids)
             
             avg_spend = round(total_spend / count, 2) if count > 0 else 0
@@ -1322,7 +1322,7 @@ def segments():
             
             active_customers = len([
                 t for t in segment_transactions
-                if (dt := parse_iso_datetime(t['date'])) and dt >= datetime.now(UTC) - timedelta(days=90)
+                if t['date'] is not None and (dt := parse_iso_datetime(t['date'])) and dt >= datetime.now(UTC) - timedelta(days=90)
             ])
             retention_rate = round((active_customers / count * 100) if count > 0 else 50, 2)
             
