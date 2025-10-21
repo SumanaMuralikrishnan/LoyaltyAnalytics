@@ -199,7 +199,7 @@ const Dashboard = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'https://loyaltyanalytics.onrender.com';
 
   useEffect(() => {
     const fetchData = async () => {
