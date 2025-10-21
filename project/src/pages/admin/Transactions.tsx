@@ -17,7 +17,7 @@ const Transactions = () => {
 
   // TODO: Replace with actual user ID from auth context
   const userId = 'your-user-id-here';
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'https://loyaltyanalytics.onrender.com';
 
   // Fetch transactions from backend
   useEffect(() => {
