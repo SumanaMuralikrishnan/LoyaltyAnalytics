@@ -35,18 +35,20 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["GET
 app.config['CACHE_TYPE'] = 'simple'
 
 try:
-
-# Supabase connection with retry logic
-    supabase: Client = create_client(
-        os.getenv("SUPABASE_URL"),
-        os.getenv("SUPABASE_KEY")
-    )
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
     
-    logger.info("Supabase client initialized successfully")
-
-
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        raise ValueError("MISSING SUPABASE_URL or SUPABASE_KEY")
+    
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+    # TEST CONNECTION
+    response = supabase.table('users').select('id').limit(1).execute()
+    logger.info(f"✅ Supabase connected! Found {len(response.data)} users")
+    
 except Exception as e:
-    logger.critical(f"Failed to initialize Supabase client: {str(e)}")
+    logger.error(f"❌ Supabase FAILED: {str(e)}")
     supabase = None
 
 # Timezone configuration
