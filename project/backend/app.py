@@ -34,6 +34,14 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["GET
 # Configuration
 app.config['CACHE_TYPE'] = 'simple'
 
+@app.route('/debug')
+def debug():
+    return f"""
+    SUPABASE_URL: {os.getenv('SUPABASE_URL', '❌ MISSING')}
+    SUPABASE_KEY: {'✅ FOUND' if os.getenv('SUPABASE_KEY') else '❌ MISSING'}
+    supabase: {'✅ READY' if supabase else '❌ NONE'}
+    """
+
 try:
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY")
