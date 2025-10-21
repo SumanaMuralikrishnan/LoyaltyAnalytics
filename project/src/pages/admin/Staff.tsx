@@ -71,7 +71,7 @@ const Staff = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'https://loyaltyanalytics.onrender.com';
   const HARD_CODED_USER_ID = 'admin-1';
 
   // Warning for hardcoded user ID
