@@ -646,18 +646,16 @@ def customers():
                 t for t in transactions_response['data']
                 if t['customer_id'] == customer_id
             ]
-            total_spend = sum(t['amount'] for t in customer_transactions if t['amount'] > 0)
+            total_spend = sum(t['amount'] for t in customer_transactions if t['amount'] is not None and t['amount'] > 0)
             
             # Get last activity
-            last_activity = max(
-                (parse_iso_datetime(t['date']) for t in customer_transactions if parse_iso_datetime(t['date'])),
-                default=datetime.now(UTC)
-            ).isoformat()
+            valid_dates = [parse_iso_datetime(t['date']) for t in customer_transactions if t['date'] is not None and parse_iso_datetime(t['date'])]
+            last_activity = max(valid_dates, default=datetime.now(UTC)).isoformat() if valid_dates else datetime.now(UTC).isoformat()
             
             # Churn risk and retention
             recent_activity = len([
                 t for t in customer_transactions
-                if (dt := parse_iso_datetime(t['date'])) and dt >= datetime.now(UTC) - timedelta(days=90)
+                if t['date'] is not None and (dt := parse_iso_datetime(t['date'])) and dt >= datetime.now(UTC) - timedelta(days=90)
             ])
             churn_risk = round(100 - (recent_activity / max(len(customer_transactions), 1) * 100), 2) if customer_transactions else 50
             retention_rate = round(recent_activity / max(len(customer_transactions), 1) * 100, 2) if customer_transactions else 50
