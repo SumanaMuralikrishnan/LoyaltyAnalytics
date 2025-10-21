@@ -1297,5 +1297,3 @@ def segments():
         logger.error(f"Segments error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
