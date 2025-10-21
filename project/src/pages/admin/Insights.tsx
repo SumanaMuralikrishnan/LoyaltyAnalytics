@@ -61,13 +61,13 @@ const Insights = () => {
       setLoading(true);
       try {
         // Fetch segments
-        const segmentsResponse = await fetch('http://localhost:5000/dashboard/segments');
+        const segmentsResponse = await fetch('https://loyaltyanalytics.onrender.com/dashboard/segments');
         if (!segmentsResponse.ok) throw new Error('Failed to fetch segments');
         const segmentsData: Segment[] = await segmentsResponse.json();
         setSegments(segmentsData);
 
         // Fetch customers
-        const customersResponse = await fetch('http://localhost:5000/dashboard/customers');
+        const customersResponse = await fetch('https://loyaltyanalytics.onrender.com/dashboard/customers');
         if (!customersResponse.ok) throw new Error('Failed to fetch customers');
         const customersData: Customer[] = await customersResponse.json();
         setCustomers(customersData);
