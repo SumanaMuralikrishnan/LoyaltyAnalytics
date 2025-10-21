@@ -18,7 +18,7 @@ from psycopg2.extras import RealDictCursor
 
 # Initialize Flask app
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
+socketio = SocketIO(app, cors_allowed_origins="https://loyaltyanalytics.netlify.app")
 load_dotenv()
 
 # Configure minimal logging
@@ -29,7 +29,7 @@ logging.getLogger('httpcore').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Enable CORS for HTTP requests
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Content-Type", "X-User-ID"])
+CORS(app, resources={r"/*": {"origins": "https://loyaltyanalytics.netlify.app"}}, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Content-Type", "X-User-ID"])
 
 # Configuration
 app.config['CACHE_TYPE'] = 'simple'
