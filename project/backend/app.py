@@ -34,43 +34,17 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["GET
 # Configuration
 app.config['CACHE_TYPE'] = 'simple'
 
-# Supabase connection with retry logic
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-def create_supabase_client():
-    """
-    Creates a connection to the Supabase PostgreSQL database using the DATABASE_URL.
-    Returns a psycopg2 connection object.
-    """
-    max_retries = 3
-    retry_delay = 2
-    for attempt in range(max_retries):
-        try:
-            if not DATABASE_URL:
-                raise ValueError("DATABASE_URL not set in environment variables")
-            
-            # Establish PostgreSQL connection
-            client = psycopg2.connect(
-                DATABASE_URL,
-                cursor_factory=RealDictCursor  # Returns dict-like rows for consistency
-            )
-            
-            # Test the connection with a simple query
-            with client.cursor() as cur:
-                cur.execute("SELECT id FROM users LIMIT 1")
-                result = cur.fetchone()
-            
-            logger.info("Supabase database connection successful")
-            return client
-        except Exception as e:
-            logger.error(f"Supabase connection attempt {attempt + 1} failed: {str(e)}")
-            if attempt < max_retries - 1:
-                time.sleep(retry_delay)
-            else:
-                raise Exception(f"Failed to connect to Supabase after {max_retries} retries: {str(e)}")
-
 try:
-    supabase= create_supabase_client()
+
+# Supabase connection with retry logic
+    supabase: Client = create_client(
+        os.getenv("SUPABASE_URL"),
+        os.getenv("SUPABASE_KEY")
+    )
+    
+    logger.info("Supabase client initialized successfully")
+
+
 except Exception as e:
     logger.critical(f"Failed to initialize Supabase client: {str(e)}")
     supabase = None
